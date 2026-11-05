@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register New Customer | Timber &amp; Oak CMS</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">🛋️</div>
+        <div class="brand-text">
+          <span class="brand-title">Timber &amp; Oak</span>
+          <span class="brand-subtitle">Retail Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-section-title">Store Management</div>
+        <a href="index.html" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="customers.html" class="nav-link active">
+          <span class="nav-icon">👥</span>
+          <span>Customers</span>
+        </a>
+        <a href="orders.html" class="nav-link">
+          <span class="nav-icon">📦</span>
+          <span>Orders</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-meta">
+          <div class="user-avatar" id="sidebar-user-avatar">E</div>
+          <div class="user-details">
+            <span class="user-name" id="sidebar-user-name">Employee</span>
+            <span class="user-role-badge" id="sidebar-user-role">STAFF</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-logout" id="sidebar-logout-btn" title="Sign Out">🚪</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-header-title">Customer Registration</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="system-status-indicator">
+            <span class="status-dot"></span>
+            <span>Cloud Sync Active</span>
+          </div>
+          <a href="customers.html" class="btn btn-secondary btn-sm">&larr; Back to Customer Directory</a>
+        </div>
+      </header>
+
+      <!-- Content Container -->
+      <div class="content-wrapper">
+        <div class="card-panel" style="max-width: 900px; margin: 0 auto;">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">New Customer Enrollment</h2>
+              <p class="text-muted" style="font-size: var(--font-size-sm); margin-top: 2px;">
+                Enroll a customer into the centralized store database. Replaces physical ledger registers.
+              </p>
+            </div>
+          </div>
+
+          <form id="customer-register-form" style="padding: 1.5rem;" novalidate>
+            <!-- Form Grid -->
+            <div class="form-grid">
+              
+              <!-- System Generated Customer ID -->
+              <div class="form-group col-6">
+                <label class="form-label" for="customerId">Assigned Customer ID</label>
+                <input 
+                  type="text" 
+                  id="customerId" 
+                  class="form-control" 
+                  readonly 
+                  style="font-family: monospace; font-weight: var(--font-weight-bold); color: var(--color-primary);"
+                >
+                <small class="text-subtle">System generated unique identification key.</small>
+              </div>
+
+              <!-- Registration Date -->
+              <div class="form-group col-6">
+                <label class="form-label" for="regDateDisplay">Registration Date</label>
+                <input 
+                  type="text" 
+                  id="regDateDisplay" 
+                  class="form-control" 
+                  readonly 
+                  value="Today"
+                >
+                <small class="text-subtle">Recorded with Cloud Firestore Server Timestamp.</small>
+              </div>
+
+              <!-- Full Name -->
+              <div class="form-group col-12">
+                <label class="form-label" for="fullName">Full Name <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="fullName" 
+                  class="form-control" 
+                  placeholder="e.g. Ramesh Patel" 
+                  required
+                >
+                <span class="form-error" id="fullName-error">Customer's legal full name is required.</span>
+              </div>
+
+              <!-- Mobile Phone -->
+              <div class="form-group col-6">
+                <label class="form-label" for="phone">Mobile Number <span class="required">*</span></label>
+                <input 
+                  type="tel" 
+                  id="phone" 
+                  class="form-control" 
+                  placeholder="10-digit mobile number (e.g. 9876543210)" 
+                  required
+                >
+                <span class="form-error" id="phone-error">Please enter a valid 10-digit phone number.</span>
+              </div>
+
+              <!-- Email Address -->
+              <div class="form-group col-6">
+                <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  class="form-control" 
+                  placeholder="customer@example.com" 
+                  required
+                >
+                <span class="form-error" id="email-error">Please enter a valid email address.</span>
+              </div>
+
+              <!-- Gender -->
+              <div class="form-group col-6">
+                <label class="form-label" for="gender">Gender (Optional)</label>
+                <select id="gender" class="form-control">
+                  <option value="unspecified">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </div>
+
+              <!-- Date of Birth -->
+              <div class="form-group col-6">
+                <label class="form-label" for="dob">Date of Birth (Optional)</label>
+                <input type="date" id="dob" class="form-control">
+              </div>
+
+              <!-- Section Divider: Address -->
+              <div class="col-12" style="border-top: 1px solid var(--color-border-subtle); padding-top: 1rem; margin-top: 0.5rem;">
+                <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: 0.25rem;">
+                  Residential / Delivery Address
+                </h3>
+                <p class="text-subtle" style="font-size: var(--font-size-xs);">
+                  Used for furniture delivery dispatch and billing receipts.
+                </p>
+              </div>
+
+              <!-- House / Flat / Building -->
+              <div class="form-group col-6">
+                <label class="form-label" for="houseNo">Flat / House / Building No. <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="houseNo" 
+                  class="form-control" 
+                  placeholder="e.g. Flat 402, Oakwood Residency" 
+                  required
+                >
+                <span class="form-error" id="houseNo-error">Building or house number is required.</span>
+              </div>
+
+              <!-- Street / Locality -->
+              <div class="form-group col-6">
+                <label class="form-label" for="street">Street / Road / Locality <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="street" 
+                  class="form-control" 
+                  placeholder="e.g. S.V. Road, Near Timber Market" 
+                  required
+                >
+                <span class="form-error" id="street-error">Street or locality is required.</span>
+              </div>
+
+              <!-- City -->
+              <div class="form-group col-4">
+                <label class="form-label" for="city">City <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="city" 
+                  class="form-control" 
+                  placeholder="e.g. Mumbai" 
+                  required
+                >
+                <span class="form-error" id="city-error">City is required.</span>
+              </div>
+
+              <!-- State -->
+              <div class="form-group col-4">
+                <label class="form-label" for="state">State <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="state" 
+                  class="form-control" 
+                  placeholder="e.g. Maharashtra" 
+                  required
+                >
+                <span class="form-error" id="state-error">State is required.</span>
+              </div>
+
+              <!-- Postal Code -->
+              <div class="form-group col-4">
+                <label class="form-label" for="postalCode">Postal Code (PIN) <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="postalCode" 
+                  class="form-control" 
+                  placeholder="e.g. 400001" 
+                  maxlength="6" 
+                  required
+                >
+                <span class="form-error" id="postalCode-error">Enter valid 6-digit PIN code.</span>
+              </div>
+
+              <!-- Additional Notes & Preferences -->
+              <div class="form-group col-12">
+                <label class="form-label" for="notes">Customer Preferences &amp; Notes (Optional)</label>
+                <textarea 
+                  id="notes" 
+                  class="form-control" 
+                  placeholder="e.g. Prefers teak wood finishes; interested in L-shaped 6-seater sofa collection."
+                ></textarea>
+              </div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border); display: flex; align-items: center; justify-content: flex-end; gap: 1rem;">
+              <button type="reset" class="btn btn-secondary" id="btn-reset">Reset Form</button>
+              <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-customer">
+                <span id="btn-submit-text">Register Customer</span>
+                <span id="btn-spinner" class="spinner spinner-sm hidden" style="border-top-color: #FFF;"></span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Logic Script -->
+  <script type="module">
+    import { requireAuth } from "./js/services/authService.js";
+    import { generateCustomerId, registerCustomer } from "./js/services/customerService.js";
+    import { isValidEmail, isValidPhone, isValidPostalCode, isNotEmpty } from "./js/utils/validator.js";
+    import { showToast, formatDate } from "./js/utils/uiUtils.js";
+
+    // 1. Guard route: Requires active employee login
+    const authSession = await requireAuth();
+    const currentUser = authSession.user;
+
+    // 2. Initialize Generated Customer ID and Today's Date
+    const customerIdInput = document.getElementById('customerId');
+    const regDateDisplay = document.getElementById('regDateDisplay');
+    customerIdInput.value = generateCustomerId();
+    regDateDisplay.value = formatDate(new Date());
+
+    // 3. Mobile sidebar toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('active');
+      });
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+      });
+    }
+
+    // 4. Form Submission & Validation
+    const form = document.getElementById('customer-register-form');
+    const submitBtn = document.getElementById('btn-submit-customer');
+    const submitText = document.getElementById('btn-submit-text');
+    const spinner = document.getElementById('btn-spinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const gender = document.getElementById('gender').value;
+      const dob = document.getElementById('dob').value;
+      const houseNo = document.getElementById('houseNo').value.trim();
+      const street = document.getElementById('street').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const state = document.getElementById('state').value.trim();
+      const postalCode = document.getElementById('postalCode').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      const customerId = customerIdInput.value;
+
+      // Validation
+      let isValid = true;
+
+      const validateField = (id, condition) => {
+        const input = document.getElementById(id);
+        if (!condition) {
+          input.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          input.classList.remove('is-invalid');
+        }
+      };
+
+      validateField('fullName', isNotEmpty(fullName));
+      validateField('phone', isValidPhone(phone));
+      validateField('email', isValidEmail(email));
+      validateField('houseNo', isNotEmpty(houseNo));
+      validateField('street', isNotEmpty(street));
+      validateField('city', isNotEmpty(city));
+      validateField('state', isNotEmpty(state));
+      validateField('postalCode', isValidPostalCode(postalCode));
+
+      if (!isValid) {
+        showToast("Validation Error", "Please correct the highlighted fields in the form.", "error");
+        return;
+      }
+
+      // Enter Loading State
+      submitBtn.disabled = true;
+      submitText.textContent = "Verifying & Saving...";
+      spinner.classList.remove('hidden');
+
+      try {
+        const createdCustomer = await registerCustomer({
+          customerId,
+          fullName,
+          phone,
+          email,
+          gender,
+          dob,
+          houseNo,
+          street,
+          city,
+          state,
+          postalCode,
+          notes
+        }, currentUser.uid);
+
+        showToast(
+          "Customer Registered", 
+          `Customer ${customerId} enrolled successfully!`, 
+          "success", 
+          3000
+        );
+
+        // Redirect to Customer Profile or Directory after short delay
+        setTimeout(() => {
+          window.location.href = `customer-profile.html?id=${createdCustomer.id}`;
+        }, 1500);
+
+      } catch (err) {
+        console.error("Customer registration error:", err);
+        showToast("Registration Failed", err.message, "error", 6000);
+      } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = "Register Customer";
+        spinner.classList.add('hidden');
+      }
+    });
+
+    // Reset button generates new Customer ID
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      setTimeout(() => {
+        customerIdInput.value = generateCustomerId();
+      }, 50);
+    });
+  </script>
+</body>
+</html>
+

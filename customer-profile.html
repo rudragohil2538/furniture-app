@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Profile | Timber &amp; Oak CMS</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .profile-hero {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .profile-avatar-large {
+      width: 68px;
+      height: 68px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--color-primary), #5B351B);
+      color: #FFF;
+      font-size: 1.75rem;
+      font-weight: var(--font-weight-bold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(140, 88, 53, 0.25);
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .profile-name {
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .contact-pills {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      font-size: var(--font-size-sm);
+    }
+
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background-color: var(--color-surface-soft);
+      padding: 0.25rem 0.625rem;
+      border-radius: var(--radius-md);
+      color: var(--color-text-main);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding-bottom: 0.5rem;
+      font-size: var(--font-size-sm);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .info-label {
+      color: var(--color-text-muted);
+      font-weight: var(--font-weight-medium);
+    }
+
+    .info-value {
+      color: var(--color-text-main);
+      font-weight: var(--font-weight-semibold);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">🛋️</div>
+        <div class="brand-text">
+          <span class="brand-title">Timber &amp; Oak</span>
+          <span class="brand-subtitle">Retail Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-section-title">Store Management</div>
+        <a href="index.html" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="customers.html" class="nav-link active">
+          <span class="nav-icon">👥</span>
+          <span>Customers</span>
+        </a>
+        <a href="orders.html" class="nav-link">
+          <span class="nav-icon">📦</span>
+          <span>Orders</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-meta">
+          <div class="user-avatar" id="sidebar-user-avatar">E</div>
+          <div class="user-details">
+            <span class="user-name" id="sidebar-user-name">Employee</span>
+            <span class="user-role-badge" id="sidebar-user-role">STAFF</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-logout" id="sidebar-logout-btn" title="Sign Out">🚪</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-header-title">Customer 360° Profile</h1>
+        </div>
+        <div class="topbar-right">
+          <a href="customers.html" class="btn btn-secondary btn-sm">&larr; Back to Directory</a>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="content-wrapper" id="profile-content-area">
+        
+        <!-- Loading State Placeholder -->
+        <div id="profile-loading" style="text-align: center; padding: 4rem;">
+          <span class="spinner"></span>
+          <p style="margin-top: 1rem; color: var(--color-text-muted);">Retrieving customer profile from Cloud Firestore...</p>
+        </div>
+
+        <!-- Dynamic Profile Content (Hidden initially) -->
+        <div id="profile-container" class="hidden">
+          
+          <!-- Hero Header -->
+          <div class="profile-hero">
+            <div class="flex items-center gap-4">
+              <div class="profile-avatar-large" id="profile-avatar">C</div>
+              <div class="profile-meta">
+                <div class="profile-name">
+                  <span id="profile-fullName">Customer Name</span>
+                  <span class="badge badge-admin" id="profile-customerId" style="font-family: monospace;">FS-CUST</span>
+                </div>
+                <div class="contact-pills">
+                  <span class="contact-pill">
+                    <span>📞</span>
+                    <a href="#" id="link-phone" style="color: inherit;">Phone</a>
+                  </span>
+                  <span class="contact-pill">
+                    <span>✉️</span>
+                    <a href="#" id="link-email" style="color: inherit;">Email</a>
+                  </span>
+                  <span class="contact-pill">
+                    <span>📍</span>
+                    <span id="profile-location">City, State</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button class="btn btn-secondary" id="btn-edit-profile">✏️ Edit Profile</button>
+              <button class="btn btn-primary" id="btn-open-new-order">+ Create Order</button>
+            </div>
+          </div>
+
+          <!-- Lifetime Metrics Strip -->
+          <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
+            <div class="stat-card" style="padding: 1.25rem;">
+              <div class="stat-card-header">
+                <span class="stat-label">Lifetime Purchases</span>
+                <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">💰</span>
+              </div>
+              <div class="stat-value" id="profile-totalSpent">₹ 0.00</div>
+              <div class="stat-footer">Cumulative customer spend</div>
+            </div>
+
+            <div class="stat-card" style="padding: 1.25rem;">
+              <div class="stat-card-header">
+                <span class="stat-label">Total Furniture Orders</span>
+                <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">📦</span>
+              </div>
+              <div class="stat-value" id="profile-totalOrders">0</div>
+              <div class="stat-footer">Confirmed store orders</div>
+            </div>
+
+            <div class="stat-card" style="padding: 1.25rem;">
+              <div class="stat-card-header">
+                <span class="stat-label">Average Order Value</span>
+                <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">📈</span>
+              </div>
+              <div class="stat-value" id="profile-avgOrder">₹ 0.00</div>
+              <div class="stat-footer">Spend per transaction</div>
+            </div>
+          </div>
+
+          <!-- Two-Column Information Cards -->
+          <div class="profile-grid">
+            
+            <!-- Left Card: Contact & Personal Details -->
+            <div class="card-panel" style="margin-bottom: 0;">
+              <div class="card-header">
+                <h3 class="card-title">Demographics &amp; Account</h3>
+              </div>
+              <div style="padding: 1.5rem;">
+                <div class="info-list">
+                  <div class="info-item">
+                    <span class="info-label">Customer ID</span>
+                    <span class="info-value" id="info-customerId" style="font-family: monospace;">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value" id="info-fullName">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Gender</span>
+                    <span class="info-value" id="info-gender" style="text-transform: capitalize;">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Date of Birth</span>
+                    <span class="info-value" id="info-dob">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Registration Date</span>
+                    <span class="info-value" id="info-regDate">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Enrolled By Employee</span>
+                    <span class="info-value" id="info-createdBy" style="font-family: monospace; font-size: var(--font-size-xs);">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Card: Residential Address & Preferences -->
+            <div class="card-panel" style="margin-bottom: 0;">
+              <div class="card-header">
+                <h3 class="card-title">Delivery Address &amp; Notes</h3>
+              </div>
+              <div style="padding: 1.5rem;">
+                <div class="info-list">
+                  <div class="info-item">
+                    <span class="info-label">Building / House</span>
+                    <span class="info-value" id="info-houseNo">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Street / Locality</span>
+                    <span class="info-value" id="info-street">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">City</span>
+                    <span class="info-value" id="info-city">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">State</span>
+                    <span class="info-value" id="info-state">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Postal Code</span>
+                    <span class="info-value" id="info-postalCode">-</span>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--color-border-subtle);">
+                  <span class="info-label" style="display: block; margin-bottom: 0.35rem;">Customer Notes &amp; Preferences:</span>
+                  <p id="info-notes" style="font-size: var(--font-size-sm); color: var(--color-text-main); background: var(--color-surface-soft); padding: 0.75rem; border-radius: var(--radius-md);">
+                    No special notes recorded.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Section: Customer Furniture Purchase History -->
+          <div class="card-panel">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Purchase History</h3>
+                <p class="text-muted" style="font-size: var(--font-size-sm); margin-top: 2px;">
+                  All past furniture purchases and custom orders associated with this customer record.
+                </p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-add-order-table">+ New Order</button>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Product &amp; Category</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total Amount</th>
+                    <th>Order Date</th>
+                    <th>Payment</th>
+                    <th>Fulfillment Status</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-table-body">
+                  <!-- Orders rendered here -->
+                </tbody>
+              </table>
+            </div>
+
+            <div id="orders-empty-state" class="table-empty hidden">
+              <div class="empty-icon">🛋️</div>
+              <h4>No Orders Placed Yet</h4>
+              <p>This customer has not made any purchases yet. Click "+ Create Order" to record their first purchase.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create Order Modal -->
+  <div class="modal-backdrop" id="new-order-modal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Furniture Order</h3>
+        <button class="modal-close-btn" id="close-order-modal">&times;</button>
+      </div>
+      <form id="new-order-form" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            
+            <div class="form-group col-6">
+              <label class="form-label">Customer ID</label>
+              <input type="text" id="order-customer-id" class="form-control" readonly>
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label">Customer Name</label>
+              <input type="text" id="order-customer-name" class="form-control" readonly>
+            </div>
+
+            <div class="form-group col-8">
+              <label class="form-label" for="order-product-name">Product Name <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="order-product-name" 
+                class="form-control" 
+                placeholder="e.g. Royal Teak 6-Seater Dining Table" 
+                required
+              >
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="order-category">Category <span class="required">*</span></label>
+              <select id="order-category" class="form-control" required>
+                <option value="Living Room">Living Room</option>
+                <option value="Bedroom">Bedroom</option>
+                <option value="Dining Room">Dining Room</option>
+                <option value="Office & Study">Office &amp; Study</option>
+                <option value="Outdoor & Patio">Outdoor &amp; Patio</option>
+                <option value="Accent & Decor">Accent &amp; Decor</option>
+              </select>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="order-qty">Quantity <span class="required">*</span></label>
+              <input type="number" id="order-qty" class="form-control" min="1" value="1" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="order-price">Unit Price (₹) <span class="required">*</span></label>
+              <input type="number" id="order-price" class="form-control" placeholder="25000" min="1" step="0.01" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label">Total Amount</label>
+              <input type="text" id="order-total-preview" class="form-control" readonly value="₹ 0.00" style="font-weight: 600; color: var(--color-primary);">
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="order-delivery-date">Expected Delivery Date</label>
+              <input type="date" id="order-delivery-date" class="form-control">
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="order-payment-status">Payment Status</label>
+              <select id="order-payment-status" class="form-control">
+                <option value="pending">Pending</option>
+                <option value="partial">Partial Advance</option>
+                <option value="paid">Paid in Full</option>
+              </select>
+            </div>
+
+            <div class="form-group col-12">
+              <label class="form-label" for="order-notes">Order Notes / Customization Specs</label>
+              <textarea id="order-notes" class="form-control" placeholder="e.g. Custom dark walnut polish with beige upholstery"></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-order">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-order">
+            <span id="order-btn-text">Confirm Order</span>
+            <span id="order-spinner" class="spinner spinner-sm hidden" style="border-top-color: #FFF;"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Logic Script -->
+  <script type="module">
+    import { requireAuth } from "./js/services/authService.js";
+    import { getCustomerById, getCustomerByDisplayId } from "./js/services/customerService.js";
+    import { createOrder, getOrdersByCustomer } from "./js/services/orderService.js";
+    import { showToast, openModal, closeModal, formatCurrency, formatDate } from "./js/utils/uiUtils.js";
+    import { isNotEmpty, isValidPrice, isValidQuantity } from "./js/utils/validator.js";
+
+    // 1. Authenticate Route
+    const session = await requireAuth();
+    const currentUser = session.user;
+
+    // 2. Mobile Sidebar Toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('active');
+      });
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+      });
+    }
+
+    // 3. Extract Customer ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramId = urlParams.get('id');
+
+    if (!paramId) {
+      showToast("Missing ID", "No customer identifier provided in URL.", "error");
+      setTimeout(() => { window.location.href = "customers.html"; }, 1500);
+    }
+
+    let customer = null;
+    let customerOrders = [];
+
+    async function loadCustomerProfile() {
+      try {
+        // Attempt fetch by Firestore docId, fallback to display ID
+        customer = await getCustomerById(paramId);
+        if (!customer) {
+          customer = await getCustomerByDisplayId(paramId);
+        }
+
+        if (!customer) {
+          document.getElementById('profile-content-area').innerHTML = `
+            <div class="card-panel" style="text-align: center; padding: 4rem;">
+              <h2 style="color: var(--color-danger); margin-bottom: 0.5rem;">Customer Record Not Found</h2>
+              <p class="text-muted">No customer matches the identifier "${paramId}".</p>
+              <a href="customers.html" class="btn btn-primary" style="margin-top: 1.5rem;">&larr; Return to Customer Directory</a>
+            </div>
+          `;
+          return;
+        }
+
+        // Render Demographics
+        renderCustomerHeader(customer);
+        renderDemographics(customer);
+
+        // Fetch & Render Orders
+        await loadCustomerOrders(customer.customerId);
+
+        document.getElementById('profile-loading').classList.add('hidden');
+        document.getElementById('profile-container').classList.remove('hidden');
+
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        showToast("Error", "Could not load customer data.", "error");
+      }
+    }
+
+    function renderCustomerHeader(c) {
+      document.getElementById('profile-avatar').textContent = (c.fullName || 'C').charAt(0).toUpperCase();
+      document.getElementById('profile-fullName').textContent = c.fullName || 'Unnamed Customer';
+      document.getElementById('profile-customerId').textContent = c.customerId || '';
+      
+      const phoneLink = document.getElementById('link-phone');
+      phoneLink.textContent = c.phone || 'No phone';
+      phoneLink.href = c.phone ? `tel:${c.phone}` : '#';
+
+      const emailLink = document.getElementById('link-email');
+      emailLink.textContent = c.email || 'No email';
+      emailLink.href = c.email ? `mailto:${c.email}` : '#';
+
+      const addr = c.address || {};
+      document.getElementById('profile-location').textContent = [addr.city, addr.state].filter(Boolean).join(', ') || 'Address on file';
+    }
+
+    function renderDemographics(c) {
+      document.getElementById('info-customerId').textContent = c.customerId || '-';
+      document.getElementById('info-fullName').textContent = c.fullName || '-';
+      document.getElementById('info-gender').textContent = c.gender || 'Unspecified';
+      document.getElementById('info-dob').textContent = c.dob || 'Not provided';
+      document.getElementById('info-regDate').textContent = formatDate(c.registrationDate);
+      document.getElementById('info-createdBy').textContent = c.createdBy || 'Staff';
+
+      const addr = c.address || {};
+      document.getElementById('info-houseNo').textContent = addr.houseNo || '-';
+      document.getElementById('info-street').textContent = addr.street || '-';
+      document.getElementById('info-city').textContent = addr.city || '-';
+      document.getElementById('info-state').textContent = addr.state || '-';
+      document.getElementById('info-postalCode').textContent = addr.postalCode || '-';
+      document.getElementById('info-notes').textContent = c.notes || 'No special preferences or notes recorded.';
+
+      // Metrics
+      const spent = c.totalSpent || 0;
+      const ordersCount = c.totalOrders || 0;
+      const avg = ordersCount > 0 ? (spent / ordersCount) : 0;
+
+      document.getElementById('profile-totalSpent').textContent = formatCurrency(spent);
+      document.getElementById('profile-totalOrders').textContent = ordersCount;
+      document.getElementById('profile-avgOrder').textContent = formatCurrency(avg);
+    }
+
+    async function loadCustomerOrders(customerId) {
+      customerOrders = await getOrdersByCustomer(customerId);
+      const tbody = document.getElementById('orders-table-body');
+      const emptyBox = document.getElementById('orders-empty-state');
+
+      if (customerOrders.length === 0) {
+        tbody.innerHTML = '';
+        emptyBox.classList.remove('hidden');
+        return;
+      }
+
+      emptyBox.classList.add('hidden');
+      tbody.innerHTML = customerOrders.map(o => `
+        <tr>
+          <td>
+            <span style="font-family: monospace; font-weight: 600; color: var(--color-primary);">
+              ${o.orderId || 'N/A'}
+            </span>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: var(--color-text-main);">${o.productName}</div>
+            <small class="text-subtle">${o.productCategory}</small>
+          </td>
+          <td>${o.quantity}</td>
+          <td>${formatCurrency(o.unitPrice)}</td>
+          <td style="font-weight: 600;">${formatCurrency(o.totalAmount)}</td>
+          <td>${formatDate(o.orderDate)}</td>
+          <td>
+            <span class="badge badge-${o.paymentStatus || 'pending'}">
+              ${o.paymentStatus || 'pending'}
+            </span>
+          </td>
+          <td>
+            <span class="badge badge-${o.orderStatus || 'placed'}">
+              ${o.orderStatus || 'placed'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Modal Triggers for New Order
+    const orderModal = document.getElementById('new-order-modal');
+    const openOrderBtn1 = document.getElementById('btn-open-new-order');
+    const openOrderBtn2 = document.getElementById('btn-add-order-table');
+    const closeOrderBtn = document.getElementById('close-order-modal');
+    const cancelOrderBtn = document.getElementById('btn-cancel-order');
+    const orderForm = document.getElementById('new-order-form');
+
+    const openOrderModalFn = () => {
+      document.getElementById('order-customer-id').value = customer.customerId;
+      document.getElementById('order-customer-name').value = customer.fullName;
+      openModal('new-order-modal');
+    };
+
+    openOrderBtn1.onclick = openOrderModalFn;
+    openOrderBtn2.onclick = openOrderModalFn;
+    closeOrderBtn.onclick = () => closeModal('new-order-modal');
+    cancelOrderBtn.onclick = () => closeModal('new-order-modal');
+
+    // Dynamic Price Preview Calculation
+    const qtyInput = document.getElementById('order-qty');
+    const priceInput = document.getElementById('order-price');
+    const previewEl = document.getElementById('order-total-preview');
+
+    const updatePreview = () => {
+      const q = Number(qtyInput.value) || 0;
+      const p = Number(priceInput.value) || 0;
+      previewEl.value = formatCurrency(q * p);
+    };
+
+    qtyInput.addEventListener('input', updatePreview);
+    priceInput.addEventListener('input', updatePreview);
+
+    // Save Order Handler
+    orderForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const productName = document.getElementById('order-product-name').value.trim();
+      const productCategory = document.getElementById('order-category').value;
+      const quantity = qtyInput.value;
+      const unitPrice = priceInput.value;
+      const expectedDeliveryDate = document.getElementById('order-delivery-date').value;
+      const paymentStatus = document.getElementById('order-payment-status').value;
+      const notes = document.getElementById('order-notes').value.trim();
+
+      if (!isNotEmpty(productName) || !isValidQuantity(quantity) || !isValidPrice(unitPrice)) {
+        showToast("Validation Error", "Please provide a valid product, quantity, and unit price.", "error");
+        return;
+      }
+
+      const saveBtn = document.getElementById('btn-save-order');
+      const btnText = document.getElementById('order-btn-text');
+      const spinner = document.getElementById('order-spinner');
+
+      saveBtn.disabled = true;
+      btnText.textContent = "Writing to Ledger...";
+      spinner.classList.remove('hidden');
+
+      try {
+        await createOrder({
+          customerId: customer.customerId,
+          customerDocId: customer.id,
+          customerName: customer.fullName,
+          customerPhone: customer.phone,
+          productName,
+          productCategory,
+          quantity,
+          unitPrice,
+          expectedDeliveryDate,
+          paymentStatus,
+          orderStatus: 'placed',
+          notes
+        }, currentUser.uid);
+
+        closeModal('new-order-modal');
+        orderForm.reset();
+        previewEl.value = "₹ 0.00";
+        showToast("Order Created", "Furniture purchase logged successfully!", "success");
+
+        // Reload data and stats
+        await loadCustomerProfile();
+
+      } catch (err) {
+        showToast("Order Error", err.message, "error");
+      } finally {
+        saveBtn.disabled = false;
+        btnText.textContent = "Confirm Order";
+        spinner.classList.add('hidden');
+      }
+    };
+
+    // Edit Profile Shortcut
+    document.getElementById('btn-edit-profile').onclick = () => {
+      window.location.href = `customers.html?edit=${customer.id}`;
+    };
+
+    // Initialize
+    await loadCustomerProfile();
+  </script>
+</body>
+</html>
+

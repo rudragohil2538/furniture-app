@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Directory | Timber &amp; Oak CMS</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">🛋️</div>
+        <div class="brand-text">
+          <span class="brand-title">Timber &amp; Oak</span>
+          <span class="brand-subtitle">Retail Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-section-title">Store Management</div>
+        <a href="index.html" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="customers.html" class="nav-link active">
+          <span class="nav-icon">👥</span>
+          <span>Customers</span>
+        </a>
+        <a href="orders.html" class="nav-link">
+          <span class="nav-icon">📦</span>
+          <span>Orders</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-meta">
+          <div class="user-avatar" id="sidebar-user-avatar">E</div>
+          <div class="user-details">
+            <span class="user-name" id="sidebar-user-name">Employee</span>
+            <span class="user-role-badge" id="sidebar-user-role">STAFF</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-logout" id="sidebar-logout-btn" title="Sign Out">🚪</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-header-title">Customer Management</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="system-status-indicator">
+            <span class="status-dot"></span>
+            <span>Database Connected</span>
+          </div>
+          <a href="customer-register.html" class="btn btn-primary btn-sm">+ Enroll Customer</a>
+        </div>
+      </header>
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+        
+        <!-- Summary Strip -->
+        <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
+          <div class="stat-card" style="padding: 1.25rem;">
+            <div class="stat-card-header">
+              <span class="stat-label">Total Registered</span>
+              <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">👥</span>
+            </div>
+            <div class="stat-value" id="stat-total-customers">0</div>
+          </div>
+
+          <div class="stat-card" style="padding: 1.25rem;">
+            <div class="stat-card-header">
+              <span class="stat-label">Cities Reached</span>
+              <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">📍</span>
+            </div>
+            <div class="stat-value" id="stat-total-cities">0</div>
+          </div>
+
+          <div class="stat-card" style="padding: 1.25rem;">
+            <div class="stat-card-header">
+              <span class="stat-label">Enrolled Today</span>
+              <span class="stat-icon-wrapper" style="width: 36px; height: 36px; font-size: 1rem;">📅</span>
+            </div>
+            <div class="stat-value" id="stat-today-customers">0</div>
+          </div>
+        </div>
+
+        <!-- Main Customers Card Panel -->
+        <div class="card-panel">
+          <!-- Toolbar -->
+          <div class="table-toolbar">
+            <div class="toolbar-left">
+              <!-- Search Input -->
+              <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                  type="text" 
+                  id="search-input" 
+                  class="form-control" 
+                  placeholder="Search by ID, name, phone, or email..."
+                >
+              </div>
+
+              <!-- Date Filter -->
+              <select id="date-filter" class="form-control" style="width: auto; min-width: 140px;">
+                <option value="all">All Dates</option>
+                <option value="today">Registered Today</option>
+                <option value="week">Past 7 Days</option>
+                <option value="month">Past 30 Days</option>
+              </select>
+
+              <!-- Sort Order -->
+              <select id="sort-selector" class="form-control" style="width: auto; min-width: 160px;">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="name-asc">Name (A &rarr; Z)</option>
+                <option value="name-desc">Name (Z &rarr; A)</option>
+              </select>
+            </div>
+
+            <div class="toolbar-right">
+              <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Export to CSV">
+                <span>📥</span> Export CSV
+              </button>
+              <a href="customer-register.html" class="btn btn-primary btn-sm">
+                <span>+</span> New Customer
+              </a>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Customer Name</th>
+                  <th>Contact Information</th>
+                  <th>City / State</th>
+                  <th>Registered Date</th>
+                  <th>Orders</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-table-body">
+                <!-- Skeleton rows rendered on load -->
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem;">
+                    <span class="spinner"></span>
+                    <p style="margin-top: 0.5rem; color: var(--color-text-muted);">Loading customer database...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State Container -->
+          <div id="table-empty-state" class="table-empty hidden">
+            <div class="empty-icon">👥</div>
+            <h3>No Customer Records Found</h3>
+            <p id="empty-state-message">No customer matches your search or filter criteria.</p>
+          </div>
+
+          <!-- Table Pagination Footer -->
+          <div class="table-pagination">
+            <div id="pagination-info">Showing 0 of 0 customers</div>
+            <div class="pagination-controls">
+              <button class="btn btn-secondary btn-sm" id="btn-prev-page" disabled>&larr; Previous</button>
+              <span id="current-page-badge" style="font-weight: var(--font-weight-semibold); padding: 0 0.5rem;">Page 1</span>
+              <button class="btn btn-secondary btn-sm" id="btn-next-page" disabled>Next &rarr;</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Customer Modal -->
+  <div class="modal-backdrop" id="edit-customer-modal">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Customer Information</h3>
+        <button class="modal-close-btn" id="close-edit-modal">&times;</button>
+      </div>
+      <form id="edit-customer-form" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="edit-doc-id">
+          
+          <div class="form-grid">
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-customerId">Customer ID</label>
+              <input type="text" id="edit-customerId" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-fullName">Full Name <span class="required">*</span></label>
+              <input type="text" id="edit-fullName" class="form-control" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-phone">Mobile Phone <span class="required">*</span></label>
+              <input type="tel" id="edit-phone" class="form-control" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-email">Email Address <span class="required">*</span></label>
+              <input type="email" id="edit-email" class="form-control" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-houseNo">Flat / Building No. <span class="required">*</span></label>
+              <input type="text" id="edit-houseNo" class="form-control" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label class="form-label" for="edit-street">Street / Locality <span class="required">*</span></label>
+              <input type="text" id="edit-street" class="form-control" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="edit-city">City <span class="required">*</span></label>
+              <input type="text" id="edit-city" class="form-control" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="edit-state">State <span class="required">*</span></label>
+              <input type="text" id="edit-state" class="form-control" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label class="form-label" for="edit-postalCode">Postal Code <span class="required">*</span></label>
+              <input type="text" id="edit-postalCode" class="form-control" maxlength="6" required>
+            </div>
+
+            <div class="form-group col-12">
+              <label class="form-label" for="edit-notes">Preferences &amp; Notes</label>
+              <textarea id="edit-notes" class="form-control"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-edit">
+            <span id="edit-btn-text">Save Changes</span>
+            <span id="edit-spinner" class="spinner spinner-sm hidden" style="border-top-color: #FFF;"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Script Logic -->
+  <script type="module">
+    import { requireAuth } from "./js/services/authService.js";
+    import { 
+      getAllCustomers, 
+      updateCustomer, 
+      deleteCustomer 
+    } from "./js/services/customerService.js";
+    import { exportCustomersToCSV } from "./js/utils/exportUtils.js";
+    import { isValidEmail, isValidPhone, isValidPostalCode, isNotEmpty } from "./js/utils/validator.js";
+    import { 
+      showToast, 
+      showConfirmModal, 
+      openModal, 
+      closeModal, 
+      formatDate 
+    } from "./js/utils/uiUtils.js";
+
+    // 1. Authenticate user
+    const session = await requireAuth();
+    const currentUser = session.user;
+    const currentProfile = session.profile;
+
+    // 2. Mobile Sidebar Toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('active');
+      });
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+      });
+    }
+
+    // 3. State Management
+    let allCustomers = [];
+    let filteredCustomers = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 10;
+
+    // Elements
+    const tableBody = document.getElementById('customers-table-body');
+    const emptyState = document.getElementById('table-empty-state');
+    const searchInput = document.getElementById('search-input');
+    const dateFilter = document.getElementById('date-filter');
+    const sortSelector = document.getElementById('sort-selector');
+    const paginationInfo = document.getElementById('pagination-info');
+    const prevBtn = document.getElementById('btn-prev-page');
+    const nextBtn = document.getElementById('btn-next-page');
+    const pageBadge = document.getElementById('current-page-badge');
+    const exportBtn = document.getElementById('btn-export-csv');
+
+    // Stat Elements
+    const statTotalEl = document.getElementById('stat-total-customers');
+    const statCitiesEl = document.getElementById('stat-total-cities');
+    const statTodayEl = document.getElementById('stat-today-customers');
+
+    // 4. Fetch Customers
+    async function loadCustomers() {
+      try {
+        allCustomers = await getAllCustomers();
+        updateSummaryStats(allCustomers);
+        applyFiltersAndSort();
+      } catch (err) {
+        console.error("Error loading customers:", err);
+        showToast("Database Error", "Failed to load customer list.", "error");
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--color-danger); padding: 2rem;">
+              Could not retrieve customer records. Please check your network and Firestore rules.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // 5. Update KPI Summary Strip
+    function updateSummaryStats(list) {
+      statTotalEl.textContent = list.length;
+      
+      const uniqueCities = new Set(
+        list.map(c => c.address?.city?.trim().toLowerCase()).filter(Boolean)
+      );
+      statCitiesEl.textContent = uniqueCities.size;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayCount = list.filter(c => {
+        if (!c.registrationDate) return false;
+        const d = c.registrationDate.toDate ? c.registrationDate.toDate() : new Date(c.registrationDate);
+        return d.toISOString().split('T')[0] === todayStr;
+      }).length;
+      statTodayEl.textContent = todayCount;
+    }
+
+    // 6. Filter, Search, and Sort Pipeline
+    function applyFiltersAndSort() {
+      const term = searchInput.value.trim().toLowerCase();
+      const dateVal = dateFilter.value;
+      const sortVal = sortSelector.value;
+
+      const now = new Date();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      filteredCustomers = allCustomers.filter(c => {
+        // Search filter (ID, name, phone, email)
+        const matchSearch = !term || (
+          (c.customerId && c.customerId.toLowerCase().includes(term)) ||
+          (c.fullName && c.fullName.toLowerCase().includes(term)) ||
+          (c.phone && c.phone.includes(term)) ||
+          (c.email && c.email.toLowerCase().includes(term))
+        );
+
+        if (!matchSearch) return false;
+
+        // Date filter
+        if (dateVal !== 'all') {
+          if (!c.registrationDate) return false;
+          const regDate = c.registrationDate.toDate ? c.registrationDate.toDate() : new Date(c.registrationDate);
+          const diffDays = (now - regDate) / oneDay;
+
+          if (dateVal === 'today' && regDate.toISOString().split('T')[0] !== now.toISOString().split('T')[0]) {
+            return false;
+          }
+          if (dateVal === 'week' && diffDays > 7) {
+            return false;
+          }
+          if (dateVal === 'month' && diffDays > 30) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Sort
+      filteredCustomers.sort((a, b) => {
+        const timeA = a.registrationDate?.seconds || (new Date(a.registrationDate || 0).getTime() / 1000);
+        const timeB = b.registrationDate?.seconds || (new Date(b.registrationDate || 0).getTime() / 1000);
+
+        if (sortVal === 'date-desc') return timeB - timeA;
+        if (sortVal === 'date-asc') return timeA - timeB;
+        if (sortVal === 'name-asc') return (a.fullName || '').localeCompare(b.fullName || '');
+        if (sortVal === 'name-desc') return (b.fullName || '').localeCompare(a.fullName || '');
+        return 0;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    // 7. Render Data Table & Pagination
+    function renderTable() {
+      const total = filteredCustomers.length;
+
+      if (total === 0) {
+        tableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        paginationInfo.textContent = 'Showing 0 of 0 customers';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        pageBadge.textContent = 'Page 1';
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = Math.min(startIndex + PAGE_SIZE, total);
+      const pageItems = filteredCustomers.slice(startIndex, endIndex);
+
+      tableBody.innerHTML = pageItems.map(c => {
+        const addr = c.address || {};
+        const locationStr = [addr.city, addr.state].filter(Boolean).join(', ') || 'N/A';
+        const isAdmin = currentProfile?.role === 'admin';
+
+        return `
+          <tr>
+            <td>
+              <span style="font-family: monospace; font-weight: 600; color: var(--color-primary);">
+                ${c.customerId || 'N/A'}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: var(--color-text-main);">${c.fullName || 'Unnamed'}</div>
+              <small class="text-subtle">${c.gender !== 'unspecified' ? c.gender : ''}</small>
+            </td>
+            <td>
+              <div style="font-size: var(--font-size-sm);">${c.phone || 'N/A'}</div>
+              <small class="text-muted">${c.email || 'N/A'}</small>
+            </td>
+            <td>
+              <span>${locationStr}</span>
+              <div style="font-size: var(--font-size-xs); color: var(--color-text-subtle);">${addr.postalCode || ''}</div>
+            </td>
+            <td>${formatDate(c.registrationDate)}</td>
+            <td>
+              <span class="badge badge-staff">
+                ${c.totalOrders || 0} Orders
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="flex items-center gap-2" style="justify-content: flex-end;">
+                <a 
+                  href="customer-profile.html?id=${c.id}" 
+                  class="btn btn-secondary btn-icon" 
+                  title="View Customer Profile"
+                >👁️</a>
+                <button 
+                  class="btn btn-secondary btn-icon btn-edit-customer" 
+                  data-id="${c.id}" 
+                  title="Edit Customer"
+                >✏️</button>
+                ${isAdmin ? `
+                  <button 
+                    class="btn btn-secondary btn-icon btn-delete-customer" 
+                    data-id="${c.id}" 
+                    data-name="${c.fullName || 'this customer'}" 
+                    title="Delete Customer (Admin Only)"
+                    style="color: var(--color-danger);"
+                  >🗑️</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Update Pagination UI
+      paginationInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${total} customers`;
+      pageBadge.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+
+      attachRowEventListeners();
+    }
+
+    // 8. Row Action Listeners (Edit & Delete)
+    function attachRowEventListeners() {
+      // Edit triggers
+      document.querySelectorAll('.btn-edit-customer').forEach(btn => {
+        btn.onclick = () => {
+          const docId = btn.getAttribute('data-id');
+          openEditModal(docId);
+        };
+      });
+
+      // Delete triggers
+      document.querySelectorAll('.btn-delete-customer').forEach(btn => {
+        btn.onclick = () => {
+          const docId = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+
+          showConfirmModal({
+            title: "Delete Customer Record",
+            message: `Are you sure you want to permanently delete customer "${name}"? This action cannot be undone.`,
+            confirmText: "Delete Record",
+            confirmClass: "btn-danger",
+            onConfirm: async () => {
+              await deleteCustomer(docId, currentUser.uid);
+              showToast("Customer Deleted", `Record for "${name}" has been removed.`, "success");
+              await loadCustomers();
+            }
+          });
+        };
+      });
+    }
+
+    // 9. Edit Customer Modal Handlers
+    const editModal = document.getElementById('edit-customer-modal');
+    const editForm = document.getElementById('edit-customer-form');
+    const closeEditBtn = document.getElementById('close-edit-modal');
+    const cancelEditBtn = document.getElementById('btn-cancel-edit');
+    const saveEditBtn = document.getElementById('btn-save-edit');
+    const editBtnText = document.getElementById('edit-btn-text');
+    const editSpinner = document.getElementById('edit-spinner');
+
+    function openEditModal(docId) {
+      const customer = allCustomers.find(c => c.id === docId);
+      if (!customer) return;
+
+      document.getElementById('edit-doc-id').value = docId;
+      document.getElementById('edit-customerId').value = customer.customerId || '';
+      document.getElementById('edit-fullName').value = customer.fullName || '';
+      document.getElementById('edit-phone').value = customer.phone || '';
+      document.getElementById('edit-email').value = customer.email || '';
+
+      const addr = customer.address || {};
+      document.getElementById('edit-houseNo').value = addr.houseNo || '';
+      document.getElementById('edit-street').value = addr.street || '';
+      document.getElementById('edit-city').value = addr.city || '';
+      document.getElementById('edit-state').value = addr.state || '';
+      document.getElementById('edit-postalCode').value = addr.postalCode || '';
+      document.getElementById('edit-notes').value = customer.notes || '';
+
+      openModal('edit-customer-modal');
+    }
+
+    closeEditBtn.onclick = () => closeModal('edit-customer-modal');
+    cancelEditBtn.onclick = () => closeModal('edit-customer-modal');
+
+    editForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const docId = document.getElementById('edit-doc-id').value;
+      const fullName = document.getElementById('edit-fullName').value.trim();
+      const phone = document.getElementById('edit-phone').value.trim();
+      const email = document.getElementById('edit-email').value.trim();
+      const houseNo = document.getElementById('edit-houseNo').value.trim();
+      const street = document.getElementById('edit-street').value.trim();
+      const city = document.getElementById('edit-city').value.trim();
+      const state = document.getElementById('edit-state').value.trim();
+      const postalCode = document.getElementById('edit-postalCode').value.trim();
+      const notes = document.getElementById('edit-notes').value.trim();
+
+      // Validation
+      if (!isNotEmpty(fullName) || !isValidPhone(phone) || !isValidEmail(email) || !isValidPostalCode(postalCode)) {
+        showToast("Validation Error", "Please verify your input values.", "error");
+        return;
+      }
+
+      saveEditBtn.disabled = true;
+      editBtnText.textContent = "Updating...";
+      editSpinner.classList.remove('hidden');
+
+      try {
+        await updateCustomer(docId, {
+          fullName,
+          phone,
+          email,
+          address: { houseNo, street, city, state, postalCode },
+          notes
+        }, currentUser.uid);
+
+        closeModal('edit-customer-modal');
+        showToast("Customer Updated", "Customer records successfully modified.", "success");
+        await loadCustomers();
+      } catch (err) {
+        showToast("Update Failed", err.message, "error");
+      } finally {
+        saveEditBtn.disabled = false;
+        editBtnText.textContent = "Save Changes";
+        editSpinner.classList.add('hidden');
+      }
+    };
+
+    // 10. Pagination Controls
+    prevBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    };
+
+    nextBtn.onclick = () => {
+      const totalPages = Math.ceil(filteredCustomers.length / PAGE_SIZE);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+      }
+    };
+
+    // 11. Event Listeners for Filters
+    searchInput.addEventListener('input', applyFiltersAndSort);
+    dateFilter.addEventListener('change', applyFiltersAndSort);
+    sortSelector.addEventListener('change', applyFiltersAndSort);
+
+    // 12. CSV Export
+    exportBtn.addEventListener('click', () => {
+      try {
+        exportCustomersToCSV(filteredCustomers);
+        showToast("CSV Exported", `Downloaded ${filteredCustomers.length} records.`, "success");
+      } catch (err) {
+        showToast("Export Failed", err.message, "error");
+      }
+    });
+
+    // Initial Load
+    await loadCustomers();
+  </script>
+</body>
+</html>
+

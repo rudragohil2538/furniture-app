@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Timber &amp; Oak Furniture CMS</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Category Bar Styling */
+    .category-item {
+      margin-bottom: 1rem;
+    }
+
+    .category-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      margin-bottom: 0.35rem;
+    }
+
+    .category-bar-bg {
+      height: 8px;
+      background-color: var(--color-surface-soft);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .category-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+      border-radius: var(--radius-full);
+      transition: width 0.6s ease-in-out;
+    }
+
+    /* Activity Feed Item */
+    .activity-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: var(--font-size-xs);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding-bottom: 0.75rem;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .activity-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background-color: var(--color-surface-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+
+    .activity-details {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-main);
+    }
+
+    .activity-time {
+      color: var(--color-text-subtle);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">🛋️</div>
+        <div class="brand-text">
+          <span class="brand-title">Timber &amp; Oak</span>
+          <span class="brand-subtitle">Retail Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-section-title">Store Management</div>
+        <a href="index.html" class="nav-link active">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="customers.html" class="nav-link">
+          <span class="nav-icon">👥</span>
+          <span>Customers</span>
+        </a>
+        <a href="orders.html" class="nav-link">
+          <span class="nav-icon">📦</span>
+          <span>Orders</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-meta">
+          <div class="user-avatar" id="sidebar-user-avatar">E</div>
+          <div class="user-details">
+            <span class="user-name" id="sidebar-user-name">Employee</span>
+            <span class="user-role-badge" id="sidebar-user-role">STAFF</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-logout" id="sidebar-logout-btn" title="Sign Out">🚪</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <div>
+            <h1 class="page-header-title">Store Overview</h1>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="system-status-indicator">
+            <span class="status-dot"></span>
+            <span id="current-date-display">Live Database</span>
+          </div>
+          <a href="customer-register.html" class="btn btn-secondary btn-sm">+ Enroll Customer</a>
+          <a href="orders.html" class="btn btn-primary btn-sm">+ New Order</a>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="content-wrapper">
+        
+        <!-- Welcome Greeting -->
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text-main);">
+            Welcome back, <span id="welcome-user-name" style="color: var(--color-primary);">Staff</span>
+          </h2>
+          <p class="text-muted" style="font-size: var(--font-size-sm); margin-top: 2px;">
+            Real-time customer register metrics and furniture fulfillment analytics.
+          </p>
+        </div>
+
+        <!-- 5-Column Metric Cards Grid -->
+        <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
+          <!-- Total Customers -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-label">Total Customers</span>
+              <span class="stat-icon-wrapper">👥</span>
+            </div>
+            <div class="stat-value" id="dash-total-customers">0</div>
+            <div class="stat-footer">Registered in digital database</div>
+          </div>
+
+          <!-- Registered Today -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-label">Registered Today</span>
+              <span class="stat-icon-wrapper">📅</span>
+            </div>
+            <div class="stat-value" id="dash-today-customers">0</div>
+            <div class="stat-footer">New customer walk-ins today</div>
+          </div>
+
+          <!-- Total Orders -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-label">Total Orders</span>
+              <span class="stat-icon-wrapper">📦</span>
+            </div>
+            <div class="stat-value" id="dash-total-orders">0</div>
+            <div class="stat-footer">All logged furniture orders</div>
+          </div>
+
+          <!-- Pending Orders -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-label">Pending Orders</span>
+              <span class="stat-icon-wrapper">⏳</span>
+            </div>
+            <div class="stat-value" id="dash-pending-orders">0</div>
+            <div class="stat-footer">Awaiting dispatch or delivery</div>
+          </div>
+
+          <!-- Total Revenue -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-label">Gross Revenue</span>
+              <span class="stat-icon-wrapper">💰</span>
+            </div>
+            <div class="stat-value" id="dash-total-revenue" style="font-size: 1.5rem;">₹ 0.00</div>
+            <div class="stat-footer">Lifetime sales volume</div>
+          </div>
+        </div>
+
+        <!-- Row 1: Recent Customers (Left) + Sales by Category (Right) -->
+        <div class="dashboard-grid">
+          <!-- Recent Customers Table -->
+          <div class="card-panel" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Recent Customer Registrations</h3>
+                <p class="text-muted" style="font-size: var(--font-size-xs); margin-top: 2px;">
+                  Latest walk-in clients enrolled in the store register.
+                </p>
+              </div>
+              <a href="customers.html" class="btn btn-secondary btn-sm">View All Customers &rarr;</a>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Customer ID</th>
+                    <th>Customer Name</th>
+                    <th>Mobile Phone</th>
+                    <th>City</th>
+                    <th>Registered</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-customers-body">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                      <span class="spinner spinner-sm"></span>
+                      <span style="margin-left: 0.5rem; color: var(--color-text-muted);">Loading customers...</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sales by Category Progress Bars -->
+          <div class="card-panel" style="margin-bottom: 0;">
+            <div class="card-header">
+              <h3 class="card-title">Orders by Category</h3>
+            </div>
+            <div style="padding: 1.5rem;" id="category-distribution-container">
+              <p class="text-muted" style="font-size: var(--font-size-xs);">Calculating distribution...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Recent Purchase Activity (Left) + Activity Audit Feed (Right) -->
+        <div class="dashboard-grid">
+          <!-- Recent Orders Table -->
+          <div class="card-panel" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Recent Purchase Activity</h3>
+                <p class="text-muted" style="font-size: var(--font-size-xs); margin-top: 2px;">
+                  Latest furniture orders placed across showroom collections.
+                </p>
+              </div>
+              <a href="orders.html" class="btn btn-secondary btn-sm">View All Orders &rarr;</a>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Order Date</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-orders-body">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                      <span class="spinner spinner-sm"></span>
+                      <span style="margin-left: 0.5rem; color: var(--color-text-muted);">Loading orders...</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Activity Audit Log -->
+          <div class="card-panel" style="margin-bottom: 0;">
+            <div class="card-header">
+              <h3 class="card-title">System Activity Log</h3>
+            </div>
+            <div style="padding: 1.25rem;" id="activity-feed-container">
+              <p class="text-muted" style="font-size: var(--font-size-xs);">Loading audit trail...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Logic Script -->
+  <script type="module">
+    import { requireAuth } from "./js/services/authService.js";
+    import { getDashboardMetrics } from "./js/services/dashboardService.js";
+    import { formatCurrency, formatDate, showToast } from "./js/utils/uiUtils.js";
+
+    // 1. Route Guard
+    const session = await requireAuth();
+    const currentUser = session.user;
+    const profile = session.profile;
+
+    // Welcome text
+    document.getElementById('welcome-user-name').textContent = profile?.fullName || currentUser.email.split('@')[0];
+    document.getElementById('current-date-display').textContent = formatDate(new Date());
+
+    // 2. Mobile Sidebar Toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('active');
+      });
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+      });
+    }
+
+    // 3. Load Live Dashboard Metrics
+    async function loadDashboard() {
+      try {
+        const metrics = await getDashboardMetrics();
+
+        // Populate KPI Cards
+        document.getElementById('dash-total-customers').textContent = metrics.totalCustomers;
+        document.getElementById('dash-today-customers').textContent = metrics.todayCustomers;
+        document.getElementById('dash-total-orders').textContent = metrics.totalOrders;
+        document.getElementById('dash-pending-orders').textContent = metrics.pendingOrders;
+        document.getElementById('dash-total-revenue').textContent = formatCurrency(metrics.totalRevenue);
+
+        // Render Recent Customers Table
+        renderRecentCustomers(metrics.recentCustomers);
+
+        // Render Categories Progress Bars
+        renderCategoryDistribution(metrics.categoryDistribution);
+
+        // Render Recent Orders Table
+        renderRecentOrders(metrics.recentOrders);
+
+        // Render Activity Logs
+        renderActivityFeed(metrics.recentActivity);
+
+      } catch (err) {
+        console.error("Dashboard metric aggregation error:", err);
+        showToast("Dashboard Error", "Failed to aggregate real-time database metrics.", "error");
+      }
+    }
+
+    function renderRecentCustomers(list) {
+      const tbody = document.getElementById('recent-customers-body');
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+              No customers registered yet. <a href="customer-register.html">Enroll the first customer &rarr;</a>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(c => `
+        <tr>
+          <td>
+            <span style="font-family: monospace; font-weight: 600; color: var(--color-primary); font-size: var(--font-size-xs);">
+              ${c.customerId || 'N/A'}
+            </span>
+          </td>
+          <td>
+            <div style="font-weight: 600; font-size: var(--font-size-sm); color: var(--color-text-main);">${c.fullName}</div>
+          </td>
+          <td style="font-size: var(--font-size-sm);">${c.phone}</td>
+          <td style="font-size: var(--font-size-sm);">${c.address?.city || 'N/A'}</td>
+          <td style="font-size: var(--font-size-sm);">${formatDate(c.registrationDate)}</td>
+          <td style="text-align: right;">
+            <a href="customer-profile.html?id=${c.id}" class="btn btn-secondary btn-icon" title="View 360 Profile">👁️</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCategoryDistribution(categories) {
+      const container = document.getElementById('category-distribution-container');
+      if (categories.length === 0) {
+        container.innerHTML = `
+          <p class="text-muted" style="font-size: var(--font-size-sm); text-align: center; padding: 1.5rem 0;">
+            No orders logged yet to compute category distribution.
+          </p>
+        `;
+        return;
+      }
+
+      container.innerHTML = categories.map(c => `
+        <div class="category-item">
+          <div class="category-header">
+            <span style="color: var(--color-text-main);">${c.category}</span>
+            <span style="color: var(--color-primary); font-weight: 600;">${c.count} orders (${c.percentage}%)</span>
+          </div>
+          <div class="category-bar-bg">
+            <div class="category-bar-fill" style="width: ${c.percentage}%;"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentOrders(orders) {
+      const tbody = document.getElementById('recent-orders-body');
+      if (orders.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+              No purchase orders recorded yet.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td>
+            <span style="font-family: monospace; font-weight: 600; color: var(--color-primary); font-size: var(--font-size-xs);">
+              ${o.orderId || 'N/A'}
+            </span>
+          </td>
+          <td>
+            <div style="font-weight: 600; font-size: var(--font-size-sm); color: var(--color-text-main);">${o.customerName || 'N/A'}</div>
+          </td>
+          <td>
+            <div style="font-size: var(--font-size-sm);">${o.productName}</div>
+            <small class="text-subtle">${o.productCategory}</small>
+          </td>
+          <td style="font-weight: 600; font-size: var(--font-size-sm);">${formatCurrency(o.totalAmount)}</td>
+          <td>
+            <span class="badge badge-${o.orderStatus || 'placed'}">
+              ${o.orderStatus || 'placed'}
+            </span>
+          </td>
+          <td style="font-size: var(--font-size-sm); white-space: nowrap;">${formatDate(o.orderDate)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderActivityFeed(logs) {
+      const container = document.getElementById('activity-feed-container');
+      if (logs.length === 0) {
+        container.innerHTML = `
+          <p class="text-muted" style="font-size: var(--font-size-sm); text-align: center; padding: 1.5rem 0;">
+            No audit logs recorded yet.
+          </p>
+        `;
+        return;
+      }
+
+      const iconMap = {
+        CUSTOMER_REGISTERED: '👤',
+        CUSTOMER_UPDATED: '✏️',
+        CUSTOMER_DELETED: '🗑️',
+        ORDER_CREATED: '📦',
+        ORDER_STATUS_UPDATED: '🚚'
+      };
+
+      container.innerHTML = `
+        <div class="activity-feed">
+          ${logs.map(log => {
+            const icon = iconMap[log.action] || '📌';
+            const actionText = (log.action || '').replace(/_/g, ' ');
+            const entity = log.customerName || log.displayId || log.entityId || '';
+
+            return `
+              <div class="activity-item">
+                <div class="activity-icon">${icon}</div>
+                <div class="activity-details">
+                  <div class="activity-title">${actionText}</div>
+                  <div class="text-muted">${entity}</div>
+                  <div class="activity-time">${formatDate(log.timestamp)}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // Initialize
+    await loadDashboard();
+  </script>
+</body>
+</html>
+

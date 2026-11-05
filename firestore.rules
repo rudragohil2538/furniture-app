@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // SECURITY HELPER FUNCTIONS (Least-Privilege & RBAC)
+    // =========================================================================
+
+    // Checks if the incoming request has a valid Firebase Auth session
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Fetches the employee document corresponding to the caller's auth UID
+    function getEmployeeRecord() {
+      return get(/databases/$(database)/documents/employees/$(request.auth.uid)).data;
+    }
+
+    // Verifies the user is an active employee in the store database
+    function isActiveEmployee() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/employees/$(request.auth.uid)) &&
+             getEmployeeRecord().status == 'active';
+    }
+
+    // Verifies the user has the 'admin' role
+    function isAdmin() {
+      return isActiveEmployee() && getEmployeeRecord().role == 'admin';
+    }
+
+    // Verifies the user has either 'staff' or 'admin' role
+    function isStaffOrAdmin() {
+      return isActiveEmployee() && 
+             (getEmployeeRecord().role == 'staff' || getEmployeeRecord().role == 'admin');
+    }
+
+    // =========================================================================
+    // 1. EMPLOYEES COLLECTION (/employees/{employeeId})
+    // =========================================================================
+    match /employees/{employeeId} {
+      // Employees can read their own profile; Admins can read all profiles
+      allow read: if isAuthenticated() && (request.auth.uid == employeeId || isAdmin());
+
+      // Admins can register new employees; 
+      // First-time users can bootstrap their own record if it does not exist yet
+      allow create: if isAuthenticated() && (
+        (request.auth.uid == employeeId && !exists(/databases/$(database)/documents/employees/$(employeeId))) ||
+        isAdmin()
+      );
+
+      // Protect against privilege escalation:
+      // Admins can update any field; Regular employees CANNOT change 'role' or 'status'
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          request.auth.uid == employeeId && 
+          isActiveEmployee() &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])
+        )
+      );
+
+      // Only Admins can remove employee accounts (cannot delete themselves)
+      allow delete: if isAdmin() && request.auth.uid != employeeId;
+    }
+
+    // =========================================================================
+    // 2. CUSTOMERS COLLECTION (/customers/{customerId})
+    // =========================================================================
+    match /customers/{customerId} {
+      // Any authenticated active employee can read customer records
+      allow read: if isStaffOrAdmin();
+
+      // Employees can register new customers (with field validation)
+      allow create: if isStaffOrAdmin() &&
+        request.resource.data.fullName is string &&
+        request.resource.data.fullName.size() > 0 &&
+        request.resource.data.phone is string &&
+        request.resource.data.phone.size() >= 10 &&
+        request.resource.data.email is string &&
+        request.resource.data.customerId is string &&
+        request.resource.data.address is map &&
+        request.resource.data.address.houseNo is string &&
+        request.resource.data.address.city is string &&
+        request.resource.data.address.state is string;
+
+      // Employees can update customer contact details & notes; counters increment safely
+      allow update: if isStaffOrAdmin() &&
+        request.resource.data.fullName is string &&
+        request.resource.data.phone is string;
+
+      // CRITICAL: Customer deletions are strictly restricted to Administrators
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 3. ORDERS COLLECTION (/orders/{orderId})
+    // =========================================================================
+    match /orders/{orderId} {
+      // Any active employee can view orders
+      allow read: if isStaffOrAdmin();
+
+      // Active employees can create orders (with numeric and type validation)
+      allow create: if isStaffOrAdmin() &&
+        request.resource.data.customerId is string &&
+        request.resource.data.productName is string &&
+        request.resource.data.productCategory is string &&
+        request.resource.data.quantity is number &&
+        request.resource.data.quantity >= 1 &&
+        request.resource.data.unitPrice is number &&
+        request.resource.data.unitPrice > 0 &&
+        request.resource.data.totalAmount is number &&
+        request.resource.data.totalAmount >= 0;
+
+      // Staff and Admin can update order fulfillment and payment status
+      allow update: if isStaffOrAdmin();
+
+      // Only Admins can delete orders
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 4. ACTIVITY LOGS COLLECTION (/activityLogs/{logId})
+    // =========================================================================
+    match /activityLogs/{logId} {
+      // Staff and Admins can view audit logs
+      allow read: if isStaffOrAdmin();
+
+      // Any authenticated employee action can append to the audit log
+      allow create: if isStaffOrAdmin() &&
+        request.resource.data.action is string &&
+        request.resource.data.performedBy is string;
+
+      // STRICT IMMUTABILITY: Audit logs can NEVER be updated or deleted by anyone!
+      allow update: if false;
+      allow delete: if false;
+    }
+
+  }
+}
+
