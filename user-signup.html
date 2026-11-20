@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Sign Up | Timber &amp; Oak Furniture</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(circle at top right, #F5EFEB, #FAF7F2 60%);
+      padding: 2.5rem 1.5rem;
+    }
+
+    .auth-card-wide {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 680px;
+      padding: 2.5rem 2.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-card-wide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    }
+
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand-emblem {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--color-primary), #5B351B);
+      color: #FFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 0.875rem;
+      box-shadow: 0 4px 12px rgba(140, 88, 53, 0.25);
+    }
+
+    .auth-title {
+      font-family: var(--font-family-display);
+      font-size: 1.625rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .auth-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .portal-tag {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.2rem 0.65rem;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-text-subtle);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.25rem;
+    }
+
+    .section-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 1.25rem 0 0.5rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--color-border-subtle);
+      grid-column: span 12;
+    }
+
+    .auth-footer {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: var(--font-size-xs);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card-wide">
+    <div class="auth-brand">
+      <div class="brand-emblem">🛋️</div>
+      <h1 class="auth-title">Timber &amp; Oak</h1>
+      <p class="auth-subtitle">Create Your Customer Account</p>
+      <span class="portal-tag">Client Registration</span>
+    </div>
+
+    <!-- Customer Registration Form -->
+    <form id="customer-signup-form" novalidate>
+      <div class="form-grid">
+
+        <!-- Personal Details -->
+        <div class="section-title">1. Personal &amp; Account Details</div>
+
+        <div class="form-group col-12">
+          <label for="fullName" class="form-label">Full Legal Name <span class="required">*</span></label>
+          <input type="text" id="fullName" class="form-control" placeholder="e.g. Ramesh Patel" required>
+          <span class="form-error" id="fullName-error">Please enter your full name.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="email" class="form-label">Email Address <span class="required">*</span></label>
+          <input type="email" id="email" class="form-control" placeholder="your.email@example.com" required autocomplete="email">
+          <span class="form-error" id="email-error">Enter a valid email address.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="phone" class="form-label">Mobile Phone Number <span class="required">*</span></label>
+          <input type="tel" id="phone" class="form-control" placeholder="10-digit mobile number" required>
+          <span class="form-error" id="phone-error">Enter a valid 10-digit phone number.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="password" class="form-label">Create Password <span class="required">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-control" placeholder="Minimum 6 characters" required autocomplete="new-password">
+            <button type="button" class="password-toggle-btn" id="toggle-password">👁️</button>
+          </div>
+          <span class="form-error" id="password-error">Password must be at least 6 characters.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="confirmPassword" class="form-label">Confirm Password <span class="required">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" class="form-control" placeholder="Re-type password" required autocomplete="new-password">
+          </div>
+          <span class="form-error" id="confirmPassword-error">Passwords must match.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="gender" class="form-label">Gender (Optional)</label>
+          <select id="gender" class="form-control">
+            <option value="unspecified">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="dob" class="form-label">Date of Birth (Optional)</label>
+          <input type="date" id="dob" class="form-control">
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="section-title">2. Delivery &amp; Shipping Address</div>
+
+        <div class="form-group col-6">
+          <label for="houseNo" class="form-label">Flat / House / Building <span class="required">*</span></label>
+          <input type="text" id="houseNo" class="form-control" placeholder="e.g. Flat 304, Royal Palms" required>
+          <span class="form-error" id="houseNo-error">House number is required.</span>
+        </div>
+
+        <div class="form-group col-6">
+          <label for="street" class="form-label">Street / Locality <span class="required">*</span></label>
+          <input type="text" id="street" class="form-control" placeholder="e.g. M.G. Road, Near Timber Yard" required>
+          <span class="form-error" id="street-error">Street address is required.</span>
+        </div>
+
+        <div class="form-group col-4">
+          <label for="city" class="form-label">City <span class="required">*</span></label>
+          <input type="text" id="city" class="form-control" placeholder="e.g. Mumbai" required>
+          <span class="form-error" id="city-error">City is required.</span>
+        </div>
+
+        <div class="form-group col-4">
+          <label for="state" class="form-label">State <span class="required">*</span></label>
+          <input type="text" id="state" class="form-control" placeholder="e.g. Maharashtra" required>
+          <span class="form-error" id="state-error">State is required.</span>
+        </div>
+
+        <div class="form-group col-4">
+          <label for="postalCode" class="form-label">PIN / Postal Code <span class="required">*</span></label>
+          <input type="text" id="postalCode" class="form-control" placeholder="6-digit PIN" maxlength="6" required>
+          <span class="form-error" id="postalCode-error">Valid 6-digit PIN required.</span>
+        </div>
+
+        <div class="form-group col-12">
+          <label for="notes" class="form-label">Furniture Preferences &amp; Style Notes (Optional)</label>
+          <textarea id="notes" class="form-control" placeholder="e.g. Interested in Teak wood living room sofas, dining tables, custom dimensions..."></textarea>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary w-full" id="btn-submit-signup" style="padding: 0.85rem;">
+          <span id="btn-text">Create Customer Account</span>
+          <span id="btn-spinner" class="spinner spinner-sm hidden" style="border-top-color: #FFF;"></span>
+        </button>
+      </div>
+    </form>
+
+    <div class="auth-footer">
+      <div>
+        <span>Already have a customer account? </span>
+        <a href="user-login.html" style="font-weight: var(--font-weight-semibold);">Sign In Here &rarr;</a>
+      </div>
+      <div style="padding-top: 0.5rem; border-top: 1px dashed var(--color-border-subtle);">
+        <span class="text-subtle">Store Staff or Administrator? </span>
+        <a href="login.html" style="color: var(--color-text-muted);">Employee Login &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { customerSignUp } from "./js/services/authService.js";
+    import { isValidEmail, isValidPhone, isValidPostalCode, isNotEmpty } from "./js/utils/validator.js";
+    import { showToast } from "./js/utils/uiUtils.js";
+    import { isFirebaseConfigured } from "./js/config/firebase-config.js";
+
+    const form = document.getElementById('customer-signup-form');
+    const submitBtn = document.getElementById('btn-submit-signup');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+
+    // Toggle Password Visibility
+    togglePasswordBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const gender = document.getElementById('gender').value;
+      const dob = document.getElementById('dob').value;
+      const houseNo = document.getElementById('houseNo').value.trim();
+      const street = document.getElementById('street').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const state = document.getElementById('state').value.trim();
+      const postalCode = document.getElementById('postalCode').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+
+      // Validation
+      let isValid = true;
+
+      const checkField = (id, valid) => {
+        const el = document.getElementById(id);
+        if (!valid) {
+          el.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          el.classList.remove('is-invalid');
+        }
+      };
+
+      checkField('fullName', isNotEmpty(fullName));
+      checkField('email', isValidEmail(email));
+      checkField('phone', isValidPhone(phone));
+      checkField('password', password && password.length >= 6);
+      checkField('confirmPassword', confirmPassword && confirmPassword === password);
+      checkField('houseNo', isNotEmpty(houseNo));
+      checkField('street', isNotEmpty(street));
+      checkField('city', isNotEmpty(city));
+      checkField('state', isNotEmpty(state));
+      checkField('postalCode', isValidPostalCode(postalCode));
+
+      if (!isValid) {
+        showToast("Validation Error", "Please correct the highlighted fields.", "error");
+        return;
+      }
+
+      if (!isFirebaseConfigured()) {
+        showToast("Firebase Config", "Please add your Firebase keys in js/config/firebase-config.js", "warning", 6000);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.textContent = "Creating Account...";
+      btnSpinner.classList.remove('hidden');
+
+      try {
+        const { user, customer } = await customerSignUp({
+          fullName,
+          email,
+          phone,
+          password,
+          gender,
+          dob,
+          houseNo,
+          street,
+          city,
+          state,
+          postalCode,
+          notes
+        });
+
+        showToast("Welcome!", `Account created successfully! ID: ${customer.customerId}`, "success", 2500);
+
+        setTimeout(() => {
+          window.location.href = "user-dashboard.html";
+        }, 1200);
+
+      } catch (error) {
+        console.error("Signup error:", error);
+        let msg = error.message || "Failed to create account.";
+        if (error.code === 'auth/email-already-in-use') {
+          msg = "An account with this email already exists. Please Sign In.";
+        } else if (error.code === 'auth/weak-password') {
+          msg = "Password should be at least 6 characters.";
+        }
+        showToast("Sign Up Error", msg, "error", 5000);
+      } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = "Create Customer Account";
+        btnSpinner.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -66,26 +66,27 @@ service cloud.firestore {
     // 2. CUSTOMERS COLLECTION (/customers/{customerId})
     // =========================================================================
     match /customers/{customerId} {
-      // Any authenticated active employee can read customer records
-      allow read: if isStaffOrAdmin();
+      // Employees can read all; Customers can read their own profile
+      allow read: if isStaffOrAdmin() || 
+        (isAuthenticated() && (resource.data.authUid == request.auth.uid || customerId == request.auth.uid));
 
-      // Employees can register new customers (with field validation)
-      allow create: if isStaffOrAdmin() &&
+      // Staff/Admins can register customers, or customers can self-register their own account
+      allow create: if (isStaffOrAdmin() &&
         request.resource.data.fullName is string &&
         request.resource.data.fullName.size() > 0 &&
         request.resource.data.phone is string &&
-        request.resource.data.phone.size() >= 10 &&
         request.resource.data.email is string &&
         request.resource.data.customerId is string &&
-        request.resource.data.address is map &&
-        request.resource.data.address.houseNo is string &&
-        request.resource.data.address.city is string &&
-        request.resource.data.address.state is string;
+        request.resource.data.address is map) ||
+        (isAuthenticated() && 
+          (request.resource.data.authUid == request.auth.uid || customerId == request.auth.uid) &&
+          request.resource.data.fullName is string &&
+          request.resource.data.email is string
+        );
 
-      // Employees can update customer contact details & notes; counters increment safely
-      allow update: if isStaffOrAdmin() &&
-        request.resource.data.fullName is string &&
-        request.resource.data.phone is string;
+      // Staff can update customer details; Customers can update their own profile/address
+      allow update: if isStaffOrAdmin() ||
+        (isAuthenticated() && (resource.data.authUid == request.auth.uid || customerId == request.auth.uid));
 
       // CRITICAL: Customer deletions are strictly restricted to Administrators
       allow delete: if isAdmin();
@@ -95,11 +96,12 @@ service cloud.firestore {
     // 3. ORDERS COLLECTION (/orders/{orderId})
     // =========================================================================
     match /orders/{orderId} {
-      // Any active employee can view orders
-      allow read: if isStaffOrAdmin();
+      // Employees view all orders; Customers view their own orders
+      allow read: if isStaffOrAdmin() ||
+        (isAuthenticated() && (resource.data.customerAuthUid == request.auth.uid || resource.data.customerId == request.auth.uid));
 
-      // Active employees can create orders (with numeric and type validation)
-      allow create: if isStaffOrAdmin() &&
+      // Active employees create orders; Logged-in customers can submit purchase requests
+      allow create: if (isStaffOrAdmin() &&
         request.resource.data.customerId is string &&
         request.resource.data.productName is string &&
         request.resource.data.productCategory is string &&
@@ -108,7 +110,13 @@ service cloud.firestore {
         request.resource.data.unitPrice is number &&
         request.resource.data.unitPrice > 0 &&
         request.resource.data.totalAmount is number &&
-        request.resource.data.totalAmount >= 0;
+        request.resource.data.totalAmount >= 0) ||
+        (isAuthenticated() && 
+          request.resource.data.customerAuthUid == request.auth.uid &&
+          request.resource.data.productName is string &&
+          request.resource.data.quantity is number &&
+          request.resource.data.quantity >= 1
+        );
 
       // Staff and Admin can update order fulfillment and payment status
       allow update: if isStaffOrAdmin();

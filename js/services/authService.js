@@ -7,6 +7,7 @@
 
 import { 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signOut, 
   sendPasswordResetEmail, 
   sendEmailVerification,
@@ -18,16 +19,27 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  collection,
+  query,
+  where,
+  getDocs,
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { auth, db, isFirebaseConfigured } from "../config/firebase-config.js";
 import { showToast } from "../utils/uiUtils.js";
+import { generateCustomerId } from "./customerService.js";
+import { sanitizeString } from "../utils/validator.js";
 
 /**
  * Currently cached employee profile (role, name, email, status).
  */
 let currentEmployeeProfile = null;
+
+/**
+ * Currently cached customer profile.
+ */
+let currentCustomerProfile = null;
 
 /**
  * Signs in an employee with email and password.
@@ -246,5 +258,217 @@ export function populateUserSidebar(profile) {
       }
     };
   }
+}
+
+/**
+ * =========================================================================
+ * CUSTOMER / CLIENT AUTHENTICATION SERVICE
+ * =========================================================================
+ */
+
+/**
+ * Registers a new customer account in Firebase Auth and creates a customer record.
+ * 
+ * @param {Object} data 
+ * @param {string} data.email
+ * @param {string} data.password
+ * @param {string} data.fullName
+ * @param {string} data.phone
+ * @param {Object} data.address
+ * @param {string} [data.notes]
+ * @returns {Promise<Object>} { user, customer }
+ */
+export async function customerSignUp(data) {
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase credentials missing. Please configure js/config/firebase-config.js first.");
+  }
+
+  // 1. Create User in Firebase Auth
+  const userCredential = await createUserWithEmailAndPassword(auth, data.email.trim(), data.password);
+  const user = userCredential.user;
+
+  // 2. Generate unique display customer ID
+  const customerId = generateCustomerId();
+  const cleanPhone = (data.phone || '').trim().replace(/[\s\-\(\)]/g, '');
+
+  // 3. Create Customer Record in Firestore (/customers/{uid})
+  const customerData = {
+    customerId: customerId,
+    authUid: user.uid,
+    fullName: sanitizeString((data.fullName || '').trim()),
+    phone: cleanPhone,
+    email: data.email.trim().toLowerCase(),
+    role: 'customer',
+    accountType: 'customer',
+    gender: data.gender || 'unspecified',
+    dob: data.dob || null,
+    address: {
+      houseNo: sanitizeString((data.houseNo || data.address?.houseNo || '').trim()),
+      street: sanitizeString((data.street || data.address?.street || '').trim()),
+      city: sanitizeString((data.city || data.address?.city || '').trim()),
+      state: sanitizeString((data.state || data.address?.state || '').trim()),
+      postalCode: (data.postalCode || data.address?.postalCode || '').trim()
+    },
+    notes: data.notes ? sanitizeString(data.notes.trim()) : '',
+    totalOrders: 0,
+    totalSpent: 0,
+    registrationDate: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    createdBy: 'self-registration'
+  };
+
+  await setDoc(doc(db, "customers", user.uid), customerData);
+  currentCustomerProfile = { id: user.uid, ...customerData };
+
+  return { user, customer: currentCustomerProfile };
+}
+
+/**
+ * Signs in a customer with email and password.
+ * 
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<Object>} { user, customer }
+ */
+export async function customerLogin(email, password) {
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase credentials missing. Please configure js/config/firebase-config.js first.");
+  }
+
+  const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+  const user = userCredential.user;
+
+  // Fetch customer profile
+  let customer = await getCustomerProfile(user.uid);
+
+  // If customer signed up previously by staff with same email but no doc at user.uid
+  if (!customer) {
+    // Try query by email or authUid
+    try {
+      const q = query(collection(db, "customers"), where("email", "==", email.trim().toLowerCase()));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const docSnap = snap.docs[0];
+        customer = { id: docSnap.id, ...docSnap.data() };
+        // Link authUid
+        await updateDoc(doc(db, "customers", docSnap.id), {
+          authUid: user.uid,
+          updatedAt: serverTimestamp()
+        });
+      }
+    } catch (e) {
+      console.warn("Customer lookup by email error:", e);
+    }
+  }
+
+  // If still no customer record, create baseline profile
+  if (!customer) {
+    const customerId = generateCustomerId();
+    customer = {
+      customerId: customerId,
+      authUid: user.uid,
+      fullName: user.displayName || user.email.split('@')[0],
+      email: user.email,
+      phone: '',
+      role: 'customer',
+      accountType: 'customer',
+      address: { houseNo: '', street: '', city: '', state: '', postalCode: '' },
+      notes: '',
+      totalOrders: 0,
+      totalSpent: 0,
+      registrationDate: serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: 'self-registration'
+    };
+    try {
+      await setDoc(doc(db, "customers", user.uid), customer);
+      customer.id = user.uid;
+    } catch (err) {
+      console.warn("Could not save fallback customer record:", err.message);
+    }
+  }
+
+  currentCustomerProfile = customer;
+  return { user, customer };
+}
+
+/**
+ * Retrieves customer record from Firestore by Auth UID.
+ * @param {string} uid 
+ * @returns {Promise<Object|null>}
+ */
+export async function getCustomerProfile(uid) {
+  try {
+    const docRef = doc(db, "customers", uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+
+    // Secondary search by authUid field
+    const q = query(collection(db, "customers"), where("authUid", "==", uid));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      return { id: d.id, ...d.data() };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching customer profile:", error);
+    return null;
+  }
+}
+
+/**
+ * Signs out the current customer and redirects to user login.
+ */
+export async function customerLogout() {
+  currentCustomerProfile = null;
+  await signOut(auth);
+  window.location.href = "user-login.html";
+}
+
+/**
+ * Route protection guard for customer views (e.g. user-dashboard.html).
+ * @returns {Promise<Object>} { user, customer }
+ */
+export function requireCustomerAuth() {
+  return new Promise((resolve) => {
+    if (!isFirebaseConfigured()) {
+      showToast("Firebase Config", "Please add your Firebase keys in js/config/firebase-config.js", "warning", 8000);
+      resolve({ 
+        user: { email: 'customer@example.com' }, 
+        customer: { customerId: 'FS-CUST-DEMO', fullName: 'Demo Customer', email: 'customer@example.com' } 
+      });
+      return;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `user-login.html?returnUrl=${returnUrl}`;
+        return;
+      }
+
+      let customer = await getCustomerProfile(user.uid);
+      if (!customer) {
+        // Fallback placeholder
+        customer = {
+          id: user.uid,
+          customerId: 'FS-CUST-' + user.uid.substring(0, 6).toUpperCase(),
+          fullName: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          phone: '',
+          address: { houseNo: '', street: '', city: '', state: '', postalCode: '' }
+        };
+      }
+
+      currentCustomerProfile = customer;
+      resolve({ user, customer });
+    });
+  });
 }
 

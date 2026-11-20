@@ -79,6 +79,7 @@ export async function createOrder(rawData, employeeUid) {
     orderId: orderId,
     customerId: rawData.customerId,
     customerDocId: rawData.customerDocId || rawData.customerId,
+    customerAuthUid: rawData.customerAuthUid || null,
     customerName: sanitizeString(rawData.customerName || 'Valued Customer'),
     customerPhone: rawData.customerPhone || '',
     productName: sanitizeString(rawData.productName.trim()),
@@ -136,33 +137,48 @@ export async function createOrder(rawData, employeeUid) {
  * Fetches all orders associated with a specific customer.
  * 
  * @param {string} customerId - Human-readable customer ID or document ID
+ * @param {string} [customerAuthUid=null] - Optional auth UID of logged in customer
  * @returns {Promise<Array<Object>>}
  */
-export async function getOrdersByCustomer(customerId) {
-  if (!isFirebaseConfigured() || !customerId) return [];
+export async function getOrdersByCustomer(customerId, customerAuthUid = null) {
+  if (!isFirebaseConfigured() || (!customerId && !customerAuthUid)) return [];
 
   try {
-    const q = query(
-      collection(db, ORDERS_COLLECTION),
-      where("customerId", "==", customerId.trim()),
-      orderBy("orderDate", "desc")
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch (error) {
-    console.warn("Ordered customer orders query failed, attempting unindexed query:", error.message);
-    // Fallback: Query by customerId without orderBy, sort in client memory
-    const qFallback = query(
-      collection(db, ORDERS_COLLECTION),
-      where("customerId", "==", customerId.trim())
-    );
-    const snapFallback = await getDocs(qFallback);
-    const list = snapFallback.docs.map(d => ({ id: d.id, ...d.data() }));
+    const ordersMap = new Map();
+
+    // 1. Query by customerId if present
+    if (customerId) {
+      const q = query(
+        collection(db, ORDERS_COLLECTION),
+        where("customerId", "==", customerId.trim())
+      );
+      const snap = await getDocs(q);
+      snap.docs.forEach(d => ordersMap.set(d.id, { id: d.id, ...d.data() }));
+    }
+
+    // 2. Query by customerAuthUid if present
+    if (customerAuthUid) {
+      try {
+        const qAuth = query(
+          collection(db, ORDERS_COLLECTION),
+          where("customerAuthUid", "==", customerAuthUid)
+        );
+        const snapAuth = await getDocs(qAuth);
+        snapAuth.docs.forEach(d => ordersMap.set(d.id, { id: d.id, ...d.data() }));
+      } catch (err) {
+        console.warn("Query by customerAuthUid failed:", err.message);
+      }
+    }
+
+    const list = Array.from(ordersMap.values());
     return list.sort((a, b) => {
       const tA = a.orderDate?.seconds || 0;
       const tB = b.orderDate?.seconds || 0;
       return tB - tA;
     });
+  } catch (error) {
+    console.warn("Customer orders fetch error:", error.message);
+    return [];
   }
 }
 
